@@ -65,8 +65,18 @@ export function SiteShell({ children }) {
               <Link href="/result">Results</Link>
             </li>
             <li>
-              <Link href="/inquiry">Enquiry</Link>
+              <Link href="/contact">Contact</Link>
             </li>
+            <li>
+              <Link href="/admission">Admission</Link>
+            </li>
+            <li>
+              <Link href="/event">Event</Link>
+            </li>
+            <li>
+              <Link href="/courses">courses</Link>
+            </li>
+            
           </ul>
         </div>
         <div className="navbar-end">

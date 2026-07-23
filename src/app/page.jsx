@@ -52,12 +52,12 @@ export default function LandingPage() {
       <div className="carousel w-full">
         <div id="item1" className="carousel-item w-full">
           <img
-            src="https://img.daisyui.com/images/stock/photo-1625726411847-8cbb60cc71e6.webp"
+            src="/images/studentsss.jpeg"
             className="w-full" />
         </div>
         <div id="item2" className="carousel-item w-full">
           <img
-            src="https://img.daisyui.com/images/stock/photo-1609621838510-5ad474b7d25d.webp"
+            src="/images/donbosco.jpeg"
             className="w-full" />
         </div>
         <div id="item3" className="carousel-item w-full">
@@ -127,6 +127,14 @@ export default function LandingPage() {
                 tone="surface-peach"
                 tall
               />
+
+              {/* <Image
+            src="/mirpara.png"
+            alt="Hero background"
+            fill
+            priority
+            className="object-contain"
+          /> */}
             </div>
           </div>
           <JourneyRail steps={journeySteps} />

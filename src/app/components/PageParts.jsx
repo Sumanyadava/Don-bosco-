@@ -13,15 +13,28 @@ export function PlaceholderVisual({
   label = "Image placeholder",
   tone = "surface-cream",
   tall = false,
+  
 }) {
   return (
     <div
       className={`placeholder-visual ${tone} ${tall ? "min-h-[360px]" : "min-h-[220px]"} glass`}
-    >
+    > {label ? (
       <div className="placeholder-frame">
         <ImageIcon size={28} />
         <span>{label}</span>
+        
       </div>
+    ):(
+
+      <Image
+            src="/mirpara.png"
+            alt="Hero background"
+            fill
+            priority
+            className="object-cover"
+          />
+    )
+  }
     </div>
   );
 }
@@ -182,6 +195,7 @@ export function FeatureGrid({ items, columns = "md:grid-cols-3" }) {
           {item.icon ? <item.icon size={28} /> : null}
           {"image" in item ? (
             <div className="mt-6">
+              {/* <Image src={item.image} alt="asd" fill className="object-contain " /> */}
               <PlaceholderVisual label={item.image} tone="surface-soft" />
             </div>
           ) : null}
@@ -292,7 +306,7 @@ export function ContactBand() {
             style={{ border: 0 }}
             allowFullScreen
             loading="lazy"
-            referrerpolicy="strict-origin-when-cross-origin"
+            referrerPolicy="strict-origin-when-cross-origin"
             className="w-full h-[450px] rounded-lg"
           ></iframe>
 

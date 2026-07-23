@@ -105,53 +105,65 @@ export const programShowcase = [
     icon: Wrench,
     title: "Workshop based learning",
     text: "Placeholder text for workshop rooms, tools, safety practice, and supervised training activity.",
-    image: "Workshop image placeholder",
+    image: "/images/studentsss.jpeg",
     tone: "surface-peach"
   },
   {
     icon: Target,
     title: "Career direction",
     text: "Placeholder text for placement support, career counselling, interview preparation, and job readiness.",
-    image: "Career guidance image placeholder",
+    image: "/images/studentss.jpeg",
     tone: "surface-mint"
   },
   {
     icon: Building2,
     title: "Campus facility",
     text: "Placeholder text for classrooms, labs, hostel support, student services, and campus environment.",
-    image: "Campus facility image placeholder",
+    image: "/images/students.jpeg",
     tone: "surface-yellow"
   },
   {
     icon: BookOpen,
     title: "Student support",
     text: "Placeholder text for mentoring, attendance guidance, parent communication, and academic help.",
-    image: "Student support image placeholder",
+    image: "/images/students.jpeg",
     tone: "surface-cream"
   }
 ];
 
 export const journeySteps = [
+  
   {
     label: "01",
-    title: "Inquiry",
-    text: "Placeholder text describing how students first speak with the office and shortlist a course."
+    title: "Inquiry & Counseling",
+    text: "Students interact with admissions officers to understand career options, course outcomes, and select the right program."
   },
   {
     label: "02",
-    title: "Admission",
-    text: "Placeholder text for document checking, eligibility review, fee guidance, and batch selection."
+    title: "Admission & Enrollment",
+    text: "Verification of documents, eligibility review, fee guidance, and batch/schedule allocation."
   },
   {
     label: "03",
-    title: "Training",
-    text: "Placeholder text for daily classes, practical sessions, attendance, assessments, and lab work."
+    title: "Core Training & Practical Labs",
+    text: "Hands-on classroom sessions, lab exercises, tool usage, regular attendance, and skill assessments."
   },
   {
     label: "04",
-    title: "Completion",
-    text: "Placeholder text for result updates, certificate collection, guidance, and next career steps."
+    title: "Guest Lectures & Expert Interaction",
+    text: "Special masterclasses and interactive sessions led by industry professionals to share market trends and real-world insights."
+  },
+  {
+    label: "05",
+    title: "Industrial Visit & Field Exposure",
+    text: "On-site visits to operational plants, workshops, and facilities to witness industry workflows in real time."
+  },
+  {
+    label: "06",
+    title: "Certification & Placement Assistance",
+    text: "Final evaluation, certificate issuance, resume preparation, and interview/placement drives with partner companies."
   }
+
 ];
 
 export const campusStats = [
@@ -164,7 +176,7 @@ export const campusStats = [
 export const inquiryFields = [
   "Student name",
   "Phone number",
-  "Preferred course",
+  // "Preferred course",
   "Last class passed"
 ];
 
