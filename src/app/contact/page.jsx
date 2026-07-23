@@ -1,4 +1,4 @@
-import { Mail, PhoneCall, Send } from "lucide-react";
+import { Mail, Map, MapIcon, MapPin, PhoneCall, Send } from "lucide-react";
 import { ContactBand, FaqList, FeatureGrid, FinalCta, Hero, PlaceholderVisual, SectionIntro } from "../components/PageParts";
 import { contact, faqItems, inquiryFields, inquiryTopics } from "../data";
 
@@ -67,10 +67,17 @@ export default function InquiryPage() {
               ))}
             </ul>
           </article>
-          <article className="cream-card p-12">
-            <Mail size={30} />
-            <h2 className="mt-8 text-3xl font-normal leading-tight text-[var(--ink)]">Visit for final confirmation</h2>
-            <p className="mt-5 text-sm leading-6 text-[var(--body)]">{contact.address}</p>
+          <article className="cream-card ">
+             <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.8876975695453!2d88.32008988637827!3d22.620668478254256!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89d531f7782b9%3A0x48556c91be84e4d2!2sDon%20Bosco%20Self%20Employment%20Research%20Institute!5e0!3m2!1sen!2sin!4v1784178547131!5m2!1sen!2sin"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            className="w-full h-[250px] rounded-lg"
+          ></iframe>
+
+            
           </article>
         </div>
       </section>
