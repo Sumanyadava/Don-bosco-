@@ -30,7 +30,9 @@ const Section = () => {
                 See admission details <ArrowRight size={18} />
               </Link>
             </div>
-            <CourseGrid limit={3} />
+            <div className="min-w-0 w-full relative">
+              <CourseGrid limit={3} />
+            </div>
           </div>
         </div>
       </section>

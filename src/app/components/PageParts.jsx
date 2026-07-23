@@ -1,3 +1,5 @@
+"use client";
+import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -6,6 +8,8 @@ import {
   FileText,
   ImageIcon,
   Phone,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { contact, courses, footerCtas } from "../data";
 
@@ -122,9 +126,26 @@ const courseImages = {
 
 export function CourseGrid({ limit }) {
   const visibleCourses = limit ? courses.slice(0, limit) : courses;
+  const carouselRef = useRef(null);
+
+  const scrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -320, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 320, behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="carousel carousel-center bg-neutral rounded-box w-full space-x-4 p-4">
+    <div className="relative group w-full min-w-0">
+      <div 
+        ref={carouselRef}
+        className="carousel carousel-center bg-neutral rounded-box w-full space-x-4 p-4"
+      >
       {visibleCourses.map((course) => {
         const imageUrl =
           courseImages[course.name] ||
@@ -183,6 +204,24 @@ export function CourseGrid({ limit }) {
           </div>
         );
       })}
+      </div>
+      
+      <button 
+        onClick={scrollLeft}
+        className="btn btn-circle bg-none btn-sm md:btn-md absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 "
+        aria-label="Scroll left"
+      >
+        <ChevronLeft size={40} className="md:w-6 md:h-6 cursor-pointer bg-amber-500 text-black" /> 
+        
+        
+      </button>
+      <button 
+        onClick={scrollRight}
+        className="btn btn-circle btn-sm md:btn-md absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 border-none"
+        aria-label="Scroll right"
+      >
+        <ChevronRight size={20} className="md:w-6 md:h-6" />
+      </button>
     </div>
   );
 }

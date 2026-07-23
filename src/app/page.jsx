@@ -93,6 +93,7 @@ export default function LandingPage() {
         </div>
       </motion.section>
 
+ {/* //crousals  */}
       <Section />
 
       <section className="section bg-white">

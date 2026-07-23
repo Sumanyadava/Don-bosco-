@@ -52,7 +52,7 @@ const Cards = () => {
           return (
             <div
               key={key}
-              className="card bg-red-300 image-full w-full shadow-sm"
+              className="card bg-blue-900 image-full w-full shadow-sm"
             >
               <figure>
                 {fact.src ? (
