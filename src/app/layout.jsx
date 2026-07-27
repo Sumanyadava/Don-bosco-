@@ -1,6 +1,6 @@
 import "./globals.css";
 import { SiteShell } from "./components/SiteShell";
-import Adminopen from "./helper/feature/adminopen";
+import Adminopen from "./helper/feature/Adminopen";
 
 export const metadata = {
   title: "Don Bosco Self Employment Research Institute",
