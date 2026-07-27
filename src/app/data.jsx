@@ -1,3 +1,4 @@
+"use client"
 import {
   Award,
   BookOpen,
@@ -182,12 +183,12 @@ export const inquiryFields = [
 
 export const inquiryTopics = [
   {
-    icon: Phone,
+    icon: "Phone",
     title: "Course selection",
     text: "Placeholder text for helping students compare ITI, technical, solar, beauty, and tailoring options."
   },
   {
-    icon: CalendarDays,
+    icon: "CalendarDays",
     title: "Batch timing",
     text: "Placeholder text for admission windows, class start dates, office hours, and counselling slots."
   },
