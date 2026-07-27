@@ -1,5 +1,6 @@
 import "./globals.css";
 import { SiteShell } from "./components/SiteShell";
+import Adminopen from "./helper/feature/adminopen";
 
 export const metadata = {
   title: "Don Bosco Self Employment Research Institute",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <SiteShell>{children}</SiteShell>
+        <Adminopen />
       </body>
     </html>
   );

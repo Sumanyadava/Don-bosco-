@@ -1,3 +1,4 @@
+"use client";
 import { CheckCircle2, FileSearch } from "lucide-react";
 import { FeatureGrid, FinalCta, Hero, PlaceholderVisual, SectionIntro } from "../components/PageParts";
 import { resultCards, resultRows, resultTimeline } from "../data";

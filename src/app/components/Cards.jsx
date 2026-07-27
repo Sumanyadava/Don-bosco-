@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { motion } from "framer-motion";
 import {
@@ -46,13 +47,13 @@ const Cards = () => {
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
     >
-      <div className="mx-auto grid max-w-7xl gap-4 px-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:px-10 lg:px-12">
+      <div className="mx-auto grid max-w-7xl gap-4 px-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:px-10 lg:px-12 ">
         {quickFacts.map((fact, key) => {
           const IconComponent = fact.icon;
           return (
             <div
               key={key}
-              className="card bg-blue-900 image-full w-full shadow-sm"
+              className="card bg-blue-900 image-full w-full shadow-sm hover:shadow-2xl duration-300"
             >
               <figure>
                 {fact.src ? (

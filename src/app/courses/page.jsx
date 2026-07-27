@@ -187,8 +187,8 @@ export default function CoursesPage() {
           <div className="card-body p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             
             {/* Search Bar */}
-            <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/50" />
+            <div className="relative w-full sm:w-80 flex flex-row-reverse">
+              <Search className="absolute right-1.5 bottom-3.5 z-10 w-4 h-4 text-base-content/50"/>
               <input
                 type="text"
                 value={searchQuery}
@@ -337,7 +337,7 @@ export default function CoursesPage() {
               
               <button 
                 onClick={() => setActiveCourse(null)}
-                className="btn btn-sm btn-circle bg-black/60 border-none text-white hover:bg-black absolute right-3 top-3 z-10"
+                className=" btn-sm btn-circle flex items-center justify-center bg-black/60 border-none text-white hover:bg-black absolute right-3 top-3 z-10"
               >
                 <X className="w-4 h-4" />
               </button>

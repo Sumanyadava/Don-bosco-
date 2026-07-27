@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export function SiteShell({ children }) {
   const [theme, setTheme] = useState("cupcake");
@@ -11,6 +11,17 @@ export function SiteShell({ children }) {
     setTheme(savedTheme);
     document.documentElement.dataset.theme = savedTheme;
   }, []);
+
+  // Click counter for Don Bosco button to open admin modal after 10 clicks
+  const clickCount = useRef(0);
+  const handleDonBoscoClick = (e) => {
+    e.preventDefault();
+    clickCount.current += 1;
+    if (clickCount.current >= 10) {
+      clickCount.current = 0;
+      document.dispatchEvent(new CustomEvent('open-admin'));
+    }
+  };
 
   const handleThemeChange = ({ target: { value } }) => {
     setTheme(value);
@@ -48,7 +59,7 @@ export function SiteShell({ children }) {
             </ul>
           </div>
 
-          <a className="btn btn-ghost text-xl">Don Bosco</a>
+          <a href="#" className="btn btn-ghost text-xl" onClick={handleDonBoscoClick}>Don Bosco</a>
         </div>
         <div className="navbar-center hidden lg:flex ">
           <ul className="menu menu-horizontal px-1">
@@ -59,23 +70,26 @@ export function SiteShell({ children }) {
               <Link href="/about">About</Link>
             </li>
             <li>
+              <Link href="/courses">Courses</Link>
+            </li>
+
+            <li>
               <Link href="/notice">Notice</Link>
             </li>
+            
             <li>
               <Link href="/result">Results</Link>
             </li>
             <li>
               <Link href="/contact">Contact</Link>
             </li>
-            <li>
+            {/* <li>
               <Link href="/admission">Admission</Link>
-            </li>
+            </li> */}
             <li>
               <Link href="/event">Event</Link>
             </li>
-            <li>
-              <Link href="/courses">courses</Link>
-            </li>
+            
             
           </ul>
         </div>

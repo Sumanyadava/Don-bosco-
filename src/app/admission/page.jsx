@@ -1,3 +1,4 @@
+"use client";
 import { Check } from "lucide-react";
 import { CourseGrid, FeatureGrid, FinalCta, Hero, PlaceholderVisual, SectionIntro } from "../components/PageParts";
 import { admissionChecklist, admissionNotices, admissionSteps } from "../data";

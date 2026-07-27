@@ -208,19 +208,19 @@ export function CourseGrid({ limit }) {
       
       <button 
         onClick={scrollLeft}
-        className="btn btn-circle bg-none btn-sm md:btn-md absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 "
+        className=" btn-circle bg-none flex justify-center items-center btn-sm md:btn-md absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 "
         aria-label="Scroll left"
       >
-        <ChevronLeft size={40} className="md:w-6 md:h-6 cursor-pointer bg-amber-500 text-black" /> 
+        <ChevronLeft size={40} className="md:w-6 md:h-6 cursor-pointer  text-black" /> 
         
         
       </button>
       <button 
         onClick={scrollRight}
-        className="btn btn-circle btn-sm md:btn-md absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 border-none"
+        className=" btn-circle btn-sm md:btn-md flex justify-center items-center absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg bg-base-100/80 hover:bg-base-100 border-none"
         aria-label="Scroll right"
       >
-        <ChevronRight size={20} className="md:w-6 md:h-6" />
+        <ChevronRight size={20} className="md:w-6 md:h-6 text-black" />
       </button>
     </div>
   );

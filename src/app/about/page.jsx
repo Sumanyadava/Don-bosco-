@@ -46,20 +46,20 @@ const VALUES = [
 // Team / Leadership Members
 const TEAM = [
   {
-    name: "Fr. Director / Head Administrator",
-    role: "Institutional Director",
+    name: "Rev Fr. Jacob Tete",
+    role: "Rev Fr. Rector / Head Administrator",
     bio: "Passionate about youth development, vocational excellence, and community outreach.",
     image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400",
   },
   {
-    name: "Head of Vocational Training",
-    role: "Technical Lead",
+    name: "Father PV Josh",
+    role: "Father Vice Principal",
     bio: "Over 15 years guiding technical courses, electrical systems, and digital automation programs.",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
   },
   {
-    name: "Placement Coordinator",
-    role: "Industry Relations Lead",
+    name: "Father Berser",
+    role: "Father Berser",
     bio: "Connecting certified graduates with corporate partners and enterprise employers.",
     image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400",
   },
