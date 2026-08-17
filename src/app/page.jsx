@@ -62,13 +62,13 @@ export default function LandingPage() {
         </div>
         <div id="item3" className="carousel-item w-full">
           <img
-            src="https://img.daisyui.com/images/stock/photo-1414694762283-acccc27bca85.webp"
-            className="w-full" />
+            src="/images/workshop.jpeg"
+            className="w-full object-cover max-h-[500px]" />
         </div>
         <div id="item4" className="carousel-item w-full">
           <img
-            src="https://img.daisyui.com/images/stock/photo-1665553365602-b2fb8e5d1707.webp"
-            className="w-full" />
+            src="/images/facility.jpeg"
+            className="w-full object-cover max-h-[500px]" />
         </div>
       </div>
       <div className="flex w-full justify-center gap-2 py-2  text-white">
@@ -93,7 +93,7 @@ export default function LandingPage() {
         </div>
       </motion.section>
 
- {/* //crousals  */}
+      {/* //crousals  */}
       <Section />
 
       <section className="section bg-white">
@@ -122,20 +122,14 @@ export default function LandingPage() {
               Replace each step with real process details, office timings, batch
               rules, and certificate instructions.
             </p>
-            <div className="mt-8">
-              <PlaceholderVisual
-                label="Replace with student journey image"
-                tone="surface-peach"
-                tall
+            <div className="mt-8 relative h-[360px] w-full overflow-hidden rounded-2xl">
+              <Image
+                src="/mirpara.png"
+                alt="Student journey map"
+                fill
+                priority
+                className="object-cover"
               />
-
-              {/* <Image
-            src="/mirpara.png"
-            alt="Hero background"
-            fill
-            priority
-            className="object-contain"
-          /> */}
             </div>
           </div>
           <JourneyRail steps={journeySteps} />

@@ -137,7 +137,7 @@ const COURSES_DATA = [
     duration: "55 Days",
     icon: Wrench,
     badgeColor: "badge-accent",
-    image: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&q=80&w=800",
+    image: "/images/mst.jpg",
     description: "Multi-disciplinary practical training in home appliance repair, basic electrical wiring, plumbing fundamentals, and facility maintenance.",
     features: ["100% Free Training", "Multi-Trade Skills", "Immediate Job Readiness"]
   },
@@ -247,10 +247,11 @@ export default function CoursesPage() {
                         <Zap className="w-3 h-3 fill-current" /> Free Course
                       </span>
                     ) : (
-                      <span className="badge bg-base-100/90 text-base-content backdrop-blur-md border border-base-200 font-extrabold text-xs shadow-md">
-                        <IndianRupee className="w-3 h-3 text-primary inline" />
-                        {course.price.toLocaleString("en-IN")}
-                      </span>
+                      // <span className="badge bg-base-100/90 text-base-content backdrop-blur-md border border-base-200 font-extrabold text-xs shadow-md">
+                      //   <IndianRupee className="w-3 h-3 text-primary inline" />
+                      //   {/* {course.price.toLocaleString("en-IN")} */}
+                      // </span>
+                      <></>
                     )}
                   </div>
 

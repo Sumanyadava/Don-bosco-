@@ -67,11 +67,16 @@ export function Hero({
   primaryLabel = "Apply Now",
   secondaryHref = "/inquiry",
   secondaryLabel = "Make Inquiry",
-  visualLabel = "Replace with institute hero image",
+  visualLabel = "/images/workshop.jpeg",
 }) {
+  const imageSrc =
+    typeof visualLabel === "string" && visualLabel.startsWith("/")
+      ? visualLabel
+      : "/images/workshop2.jpeg";
+
   return (
     <section className="hero-band">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 md:grid-cols-[1fr_0.82fr] md:px-10 lg:px-12">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 md:grid-cols-[1fr_1.1fr] md:px-10 lg:px-12 items-center">
         <div className="max-w-3xl self-center">
           <p className="caption">{eyebrow}</p>
           <h1 className="mt-5 text-5xl font-normal leading-[1.08] text-[var(--ink)] md:text-6xl">
@@ -89,20 +94,15 @@ export function Hero({
             </Link>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-[0.72fr_1fr] md:items-end">
-          <div className="hidden md:block">
-            <PlaceholderVisual label={visualLabel} tone="surface-mint" tall />
-          </div>
-          <div className="rounded-xl bg-[var(--signature-cream)] p-4">
-            <Image
-              src="/don-bosco.jpeg"
-              alt="Don Bosco Institute admission flyer"
-              width={900}
-              height={1200}
-              priority
-              className="h-auto w-full rounded-lg object-cover"
-            />
-          </div>
+        <div className="w-full h-[380px] sm:h-[460px] md:h-[520px] lg:h-[580px] relative overflow-hidden rounded-2xl shadow-xl bg-[var(--signature-cream)] p-2.5 border border-base-200">
+          <Image
+            src={imageSrc}
+            alt={title || "Don Bosco Institute image"}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="rounded-xl object-cover hover:scale-105 transition-transform duration-500"
+          />
         </div>
       </div>
     </section>
@@ -113,7 +113,7 @@ const courseImages = {
   "Fitter (ITI)":
     "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80",
   "Draughtsman Civil (ITI)":
-    "https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=600&q=80",
+    "/images/workshop.jpeg",
   "Refrigeration & Air Conditioning":
     "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80",
   "Electrical & Solar - PV":
@@ -232,10 +232,13 @@ export function FeatureGrid({ items, columns = "md:grid-cols-3" }) {
       {items.map((item) => (
         <article key={item.title} className={`demo-card ${item.tone || ""}`}>
           {item.icon ? <item.icon size={28} /> : null}
-          {"image" in item ? (
-            <div className="mt-6">
-              {/* <Image src={item.image} alt="asd" fill className="object-contain " /> */}
-              <PlaceholderVisual label={item.image} tone="surface-soft" />
+          {item.image ? (
+            <div className="mt-6 h-48 w-full overflow-hidden rounded-xl relative">
+              <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
             </div>
           ) : null}
           <h3 className="mt-8 text-xl font-normal leading-7 text-[var(--ink)]">

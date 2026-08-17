@@ -209,108 +209,6 @@ export default function NoticePage() {
         </div>
       </div>
 
-      {/* DaisyUI Notice Detail Modal */}
-      <div className={`modal ${activeNotice ? "modal-open" : ""}`} role="dialog">
-        {activeNotice && (
-          <div className="modal-box max-w-2xl bg-base-100 p-0 overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-base-100 border-b border-base-200 p-6 flex items-start justify-between gap-4 z-10">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <CategoryBadge category={activeNotice.category} />
-                  {activeNotice.isUrgent && (
-                    <span className="badge badge-error badge-sm font-semibold">
-                      Urgent
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-xl font-bold text-base-content leading-snug">
-                  {activeNotice.title}
-                </h2>
-              </div>
-              <button 
-                onClick={() => setActiveNotice(null)}
-                className="btn btn-sm btn-circle btn-ghost"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center gap-4 text-xs text-base-content/60 border-b border-base-200 pb-4">
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-base-content/40" />
-                  Published {activeNotice.date}
-                </span>
-              </div>
-
-              <div className="text-base-content/80 text-sm leading-relaxed whitespace-pre-line">
-                {activeNotice.content}
-              </div>
-
-              {/* Attachments Section */}
-              {activeNotice.attachments.length > 0 && (
-                <div className="space-y-2 pt-2">
-                  <p className="text-xs font-semibold text-base-content/60 uppercase tracking-wider">
-                    Attachments ({activeNotice.attachments.length})
-                  </p>
-                  <div className="space-y-2">
-                    {activeNotice.attachments.map((file, idx) => (
-                      <div 
-                        key={idx}
-                        className="flex items-center justify-between p-3 rounded-xl bg-base-200 border border-base-300 transition group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Download className="w-4 h-4 text-primary group-hover:scale-110 transition" />
-                          <div>
-                            <p className="text-xs font-medium text-base-content">{file.name}</p>
-                            <p className="text-[10px] text-base-content/60">{file.size}</p>
-                          </div>
-                        </div>
-                        <button className="btn btn-xs btn-primary btn-outline">
-                          Download
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1.5 pt-2">
-                {activeNotice.tags.map((tag, i) => (
-                  <span key={i} className="badge badge-ghost badge-sm gap-1 text-xs text-base-content/70">
-                    <Tag className="w-3 h-3 text-base-content/40" />
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="modal-action border-t border-base-200 p-4 bg-base-200/50 flex justify-between items-center m-0">
-              <button
-                onClick={() => handleShare(activeNotice.id)}
-                className="btn btn-ghost btn-sm gap-1.5 text-xs text-base-content/70"
-              >
-                {copied ? <Check className="w-4 h-4 text-success" /> : <Share2 className="w-4 h-4" />}
-                {copied ? "Link Copied!" : "Share Link"}
-              </button>
-
-              <button
-                onClick={() => setActiveNotice(null)}
-                className="btn btn-primary btn-sm rounded-xl"
-              >
-                Close Notice
-              </button>
-            </div>
-          </div>
-        )}
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={() => setActiveNotice(null)}>close</button>
-        </form>
-      </div>
     </div>
   );
 }
@@ -356,20 +254,6 @@ function NoticeCard({ notice, onClick }) {
           {notice.content}
         </p>
 
-        <div className="flex items-center justify-between pt-3 mt-2 border-t border-base-200">
-          <div className="flex items-center gap-3 text-xs text-base-content/60">
-            {notice.attachments.length > 0 && (
-              <span className="flex items-center gap-1 text-base-content/80">
-                <Download className="w-3.5 h-3.5 text-primary" />
-                {notice.attachments.length} {notice.attachments.length === 1 ? "File" : "Files"}
-              </span>
-            )}
-          </div>
-
-          <span className="text-xs font-semibold text-primary flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-            Read Notice <ChevronRight className="w-3.5 h-3.5" />
-          </span>
-        </div>
       </div>
     </div>
   );

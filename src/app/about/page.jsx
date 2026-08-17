@@ -228,13 +228,13 @@ export default function AboutPage() {
                 key={idx} 
                 className="card bg-base-100 border border-base-200 shadow-md overflow-hidden group hover:shadow-xl transition-all"
               >
-                <figure className="aspect-square relative bg-base-200 overflow-hidden">
+                {/* <figure className="aspect-square relative bg-base-200 overflow-hidden">
                   <img 
                     src={member.image} 
                     alt={member.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                   />
-                </figure>
+                </figure> */}
                 <div className="card-body p-5 space-y-1">
                   <div>
                     <span className="badge badge-primary badge-sm font-semibold">

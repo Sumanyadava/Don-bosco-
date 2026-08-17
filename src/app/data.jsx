@@ -106,7 +106,7 @@ export const programShowcase = [
     icon: Wrench,
     title: "Workshop based learning",
     text: "Placeholder text for workshop rooms, tools, safety practice, and supervised training activity.",
-    image: "/images/studentsss.jpeg",
+    image: "/images/workshop.jpeg",
     tone: "surface-peach"
   },
   {
@@ -120,7 +120,7 @@ export const programShowcase = [
     icon: Building2,
     title: "Campus facility",
     text: "Placeholder text for classrooms, labs, hostel support, student services, and campus environment.",
-    image: "/images/students.jpeg",
+    image: "/images/facility.jpeg",
     tone: "surface-yellow"
   },
   {

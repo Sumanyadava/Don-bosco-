@@ -1,5 +1,6 @@
 "use client";
 
+import { HamIcon, Menu } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 
@@ -35,27 +36,33 @@ export function SiteShell({ children }) {
         <div className="navbar-start ">
           <div className="dropdown lg:hidden">
             <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-              <div className="text-xl text-base-content">Hi</div>
+              <div className="text-xl text-base-content"><Menu /></div>
             </div>
             <ul
               tabIndex="-1"
-              className="menu menu-sm dropdown-content z-1 mt-3 w-52 rounded-box bg-base-100 p-2 shadow"
+              className="menu menu-sm dropdown-content z-1 mt-3 w-52 rounded-box bg-base-300 p-2 shadow"
             >
               <li>
-                <Link href="/">Home</Link>
-              </li>
-              <li>
-                <Link href="/about">About</Link>
-              </li>
-              <li>
-                <Link href="/notice">Notice</Link>
-              </li>
-              <li>
-                <Link href="/result">Results</Link>
-              </li>
-              <li>
-                <Link href="/inquiry">Enquiry</Link>
-              </li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <Link href="/about">About</Link>
+            </li>
+            <li>
+              <Link href="/courses">Courses</Link>
+            </li>
+
+            <li>
+              <Link href="/notice">Notice</Link>
+            </li>
+            
+            <li>
+              <Link href="/contact">Contact</Link>
+            </li>
+            
+            <li>
+              <Link href="/event">Event</Link>
+            </li>
             </ul>
           </div>
 
@@ -78,14 +85,9 @@ export function SiteShell({ children }) {
             </li>
             
             <li>
-              <Link href="/result">Results</Link>
-            </li>
-            <li>
               <Link href="/contact">Contact</Link>
             </li>
-            {/* <li>
-              <Link href="/admission">Admission</Link>
-            </li> */}
+            
             <li>
               <Link href="/event">Event</Link>
             </li>

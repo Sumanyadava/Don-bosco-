@@ -1,8 +1,10 @@
 "use client";
+
 import { useState } from "react";
-import { Check, Mail, Map, MapIcon, MapPin, PhoneCall, Send, GraduationCap, MessageSquare, Flag, ArrowRight } from "lucide-react";
+import { Check, Mail, Map, MapIcon, MapPin, PhoneCall, Send, GraduationCap, MessageSquare, Flag, ArrowRight, Import } from "lucide-react";
 import { ContactBand, FaqList, FeatureGrid, FinalCta, Hero, PlaceholderVisual, SectionIntro } from "../components/PageParts";
 import { contact, faqItems, inquiryFields, inquiryTopics, admissionChecklist } from "../data";
+import Image from "next/image";
 
 export default function InquiryPage() {
   const [formType, setFormType] = useState("admission");
@@ -19,37 +21,37 @@ export default function InquiryPage() {
         eyebrow="Contact & Support"
         title="We're here to help with admissions, inquiries, and support."
         text="Choose the relevant category below so we can route your request to the right department."
-        primaryHref="/admission"
-        primaryLabel="Check Admission"
-        secondaryHref="/result"
-        secondaryLabel="View Results"
-        visualLabel="Replace with contact desk image"
+        primaryHref="/cources"
+        primaryLabel="Check Courses"
+        secondaryHref="/events"
+        secondaryLabel="View Events"
+        visualLabel="/images/mst.jpg"
       />
 
       <section className="relative py-24 bg-white overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-0 right-0 -mr-32 -mt-32 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[80px] pointer-events-none" />
-        
+
         <div className="mx-auto max-w-7xl px-5 md:px-10 lg:px-12 relative z-10">
           <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start">
-            
+
             {/* Left side text - High impact */}
             <div className="lg:w-5/12 pt-4">
               <div className="inline-flex items-center gap-2 mb-6">
                 <div className="h-[1px] w-8 bg-primary"></div>
                 <span className="text-primary font-semibold tracking-widest uppercase text-xs">Reach Out</span>
               </div>
-              
+
               <h2 className="text-5xl lg:text-7xl font-light text-[var(--ink)] tracking-tight leading-[1.1] mb-8">
-                Let's start a <br/>
+                Let's start a <br />
                 <span className="font-serif italic text-primary">conversation.</span>
               </h2>
-              
+
               <p className="text-lg text-[var(--body)] mb-12 leading-relaxed max-w-md">
                 Whether you have a question about admissions, need support, or want to share your thoughts, our team is ready to help you find the answers.
               </p>
-              
+
               {/* Contact info as modern minimal cards */}
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="group relative bg-base-100 p-6 rounded-3xl border border-base-200 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
@@ -57,15 +59,15 @@ export default function InquiryPage() {
                     <MapPin size={20} />
                   </div>
                   <h4 className="text-lg font-semibold text-[var(--ink)] mb-1">Campus</h4>
-                  <p className="text-sm text-[var(--body)] leading-relaxed">Don Bosco SERI,<br/>Kolkata, India</p>
+                  <p className="text-sm text-[var(--body)] leading-relaxed">Don Bosco SERI,<br />Kolkata, India</p>
                 </div>
-                
+
                 <div className="group relative bg-base-100 p-6 rounded-3xl border border-base-200 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform duration-300">
                     <PhoneCall size={20} />
                   </div>
                   <h4 className="text-lg font-semibold text-[var(--ink)] mb-1">Call Us</h4>
-                  <p className="text-sm text-[var(--body)] leading-relaxed">Mon - Fri<br/>9:00 AM - 4:00 PM</p>
+                  <p className="text-sm text-[var(--body)] leading-relaxed">Mon - Fri<br />9:00 AM - 4:00 PM</p>
                 </div>
               </div>
             </div>
@@ -74,33 +76,31 @@ export default function InquiryPage() {
             <div className="lg:w-7/12 w-full">
               <form className="bg-white rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] p-8 sm:p-12 lg:p-14 border border-base-200 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full pointer-events-none"></div>
-                
+
                 <h3 className="text-2xl font-semibold text-[var(--ink)] mb-8">What can we help you with?</h3>
-                
+
                 {/* Big custom interactive tiles for category */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
                   {formTypes.map((type) => (
-                    <label 
-                      key={type.id} 
-                      className={`relative cursor-pointer rounded-2xl p-5 border-2 transition-all duration-300 ease-out flex flex-col items-start gap-4 group overflow-hidden ${
-                        formType === type.id 
-                          ? `${type.border} ${type.bg} shadow-md` 
-                          : `border-base-200 hover:border-base-300 bg-white hover:bg-base-50`
-                      }`}
+                    <label
+                      key={type.id}
+                      className={`relative cursor-pointer rounded-2xl p-5 border-2 transition-all duration-300 ease-out flex flex-col items-start gap-4 group overflow-hidden ${formType === type.id
+                        ? `${type.border} ${type.bg} shadow-md`
+                        : `border-base-200 hover:border-base-300 bg-white hover:bg-base-50`
+                        }`}
                     >
-                      <input 
-                        type="radio" 
-                        name="contact_type" 
-                        className="hidden" 
+                      <input
+                        type="radio"
+                        name="contact_type"
+                        className="hidden"
                         checked={formType === type.id}
                         onChange={() => setFormType(type.id)}
                       />
-                      <div className={`transition-colors ${
-                        formType === type.id ? type.color : 'text-base-content/40 group-hover:text-base-content/60'
-                      }`}>
+                      <div className={`transition-colors ${formType === type.id ? type.color : 'text-base-content/40 group-hover:text-base-content/60'
+                        }`}>
                         {type.icon}
                       </div>
-                      
+
                       <div>
                         <span className={`block font-semibold mb-0.5 ${formType === type.id ? 'text-[var(--ink)]' : 'text-[var(--ink)]'}`}>
                           {type.label}
@@ -109,7 +109,7 @@ export default function InquiryPage() {
                           {type.desc}
                         </span>
                       </div>
-                      
+
                       {/* Active indicator dot */}
                       {formType === type.id && (
                         <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-current text-inherit" />
@@ -169,33 +169,40 @@ export default function InquiryPage() {
       </section>
 
       <section className="section bg-[var(--canvas)]">
-              <div className="mx-auto grid max-w-7xl gap-8 px-5 md:grid-cols-[0.9fr_1.1fr] md:px-10 lg:px-12">
-                <div>
-                  <p className="caption">Checklist</p>
-                  <h2 className="mt-4 text-4xl font-normal leading-tight text-[var(--ink)]">
-                    Replace this checklist with final admission requirements.
-                  </h2>
-                  <p className="mt-5 text-sm leading-6 text-[var(--body)]">
-                    Use this area for official document rules, fee notes, office timing, guardian requirements, and hostel admission details.
-                  </p>
-                  <div className="mt-8">
-                    <PlaceholderVisual label="Admission document image placeholder" tone="surface-mint" />
-                  </div>
-                </div>
-                <div className="feature-card">
-                  <ul className="space-y-5">
-                    {admissionChecklist.map((item) => (
-                      <li key={item} className="flex gap-4 text-sm leading-6 text-[var(--body)]">
-                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-white">
-                          <Check size={15} />
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 md:grid-cols-[0.9fr_1.1fr] md:px-10 lg:px-12">
+          <div>
+            <p className="caption">Checklist</p>
+            <h2 className="mt-4 text-4xl font-normal leading-tight text-[var(--ink)]">
+              Replace this checklist with final admission requirements.
+            </h2>
+            <p className="mt-5 text-sm leading-6 text-[var(--body)]">
+              Use this area for official document rules, fee notes, office timing, guardian requirements, and hostel admission details.
+            </p>
+            <div className="mt-8 z-40 relative">
+              <Image
+                src="/mirpara.png"
+                alt="Student journey map"
+                height={800}
+                width={800}
+                className="object-cover rounded-2xl"
+              />
+              
+            </div>
+          </div>
+          <div className="feature-card">
+            <ul className="space-y-5">
+              {admissionChecklist.map((item) => (
+                <li key={item} className="flex gap-4 text-sm leading-6 text-[var(--body)]">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-white">
+                    <Check size={15} />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
 
       <section className="section">
         <div className="mx-auto max-w-7xl px-5 md:px-10 lg:px-12">
@@ -220,16 +227,16 @@ export default function InquiryPage() {
             </ul>
           </article>
           <article className="cream-card ">
-             <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.8876975695453!2d88.32008988637827!3d22.620668478254256!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89d531f7782b9%3A0x48556c91be84e4d2!2sDon%20Bosco%20Self%20Employment%20Research%20Institute!5e0!3m2!1sen!2sin!4v1784178547131!5m2!1sen!2sin"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="strict-origin-when-cross-origin"
-            className="w-full h-[250px] rounded-lg"
-          ></iframe>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3682.8876975695453!2d88.32008988637827!3d22.620668478254256!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f89d531f7782b9%3A0x48556c91be84e4d2!2sDon%20Bosco%20Self%20Employment%20Research%20Institute!5e0!3m2!1sen!2sin!4v1784178547131!5m2!1sen!2sin"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="w-full h-[250px] rounded-lg"
+            ></iframe>
 
-            
+
           </article>
         </div>
       </section>
@@ -245,7 +252,22 @@ export default function InquiryPage() {
               Placeholder text for how inquiry calls are handled, when students can visit, and what details they should bring.
             </p>
           </div>
-          <PlaceholderVisual label="Inquiry office image placeholder" tone="surface-yellow" tall />
+          {/* <div className="relative">
+          <Image
+            src="/mirpara.png"
+            alt="Student journey map"
+            fill
+            priority
+            className="object-cover "
+          />
+          </div> */}
+          <Image
+                src="/mirpara.png"
+                alt="Student journey map"
+                height={800}
+                width={800}
+                className="object-cover rounded-2xl"
+              />
         </div>
       </section>
 
