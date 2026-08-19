@@ -8,21 +8,6 @@ const Adminopen = () => {
     const [error, setError] = useState("");
     const router = useRouter();
 
-    useEffect(() => {
-        function checkshortcut(e) {
-            // Detect Alt + A (both left Alt and right Alt/AltGraph)
-            // Some keyboards emit AltGraph
-            console.log('shortcut keydown', e.key, e.altKey, e.ctrlKey, e.code);
-            if (e.altKey && (e.key?.toLowerCase() === 'a' || e.code === 'KeyA')) {
-                e.preventDefault();
-                setOpen(prev => !prev);
-            }
-        }
-
-        document.addEventListener("keydown", checkshortcut);
-        return () => document.removeEventListener("keydown", checkshortcut);
-    }, []);
-
     // Listen for custom event to open admin modal after 10 clicks on Don Bosco button
     useEffect(() => {
         const openHandler = () => setOpen(true);

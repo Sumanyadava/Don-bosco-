@@ -1,61 +1,154 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { 
-    LayoutDashboard, 
-    Inbox, 
-    BellRing, 
+import {
+    LayoutDashboard,
+    Inbox,
+    BellRing,
     CalendarDays,
     Images,
     Upload,
     X,
-    Settings, 
-    LogOut, 
-    Search, 
-    Plus, 
+    Settings,
+    LogOut,
+    Search,
+    Plus,
     MoreVertical,
     CheckCircle2,
     XCircle,
     Eye,
+    EyeOff,
     Edit,
     Trash2,
     Users,
     AlertCircle,
     FileText,
-    TrendingUp
+    TrendingUp,
+    Lock,
+    Mail,
+    User,
+    ShieldCheck,
+    ArrowRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getStoredEvents, addEvent, updateEvent, deleteEvent, subscribeEvents } from "../helper/eventStorage";
-
-// --- Mock Data ---
-const MOCK_INQUIRIES = [
-    { id: "INQ-001", name: "Rahul Sharma", type: "Admission", email: "rahul@example.com", phone: "9876543210", date: "2026-07-25", status: "Pending", qualification: "12th Science", message: "Interested in Fitter ITI course. What is the fee structure?" },
-    { id: "INQ-002", name: "Priya Das", type: "Inquiry", email: "priya@example.com", phone: "8765432109", date: "2026-07-24", status: "Resolved", message: "Do you have any short term computer courses?" },
-    { id: "INQ-003", name: "Amit Kumar", type: "Complaint", email: "amit.k@example.com", phone: "7654321098", date: "2026-07-23", status: "In Progress", message: "The online result portal is showing an error for my roll number." },
-    { id: "INQ-004", name: "Sneha Roy", type: "Admission", email: "sneha@example.com", phone: "9123456780", date: "2026-07-22", status: "Pending", qualification: "10th", message: "I want to take admission in Beautician course. Is hostel available for girls?" },
-    { id: "INQ-005", name: "Vikash Singh", type: "Inquiry", email: "vikash@example.com", phone: "9988776655", date: "2026-07-21", status: "Pending", message: "When does the next batch for Solar PV start?" },
-];
-
-const MOCK_NOTICES = [
-    { id: 1, title: "Urgent: Final Examination Schedule Released for Spring 2026", category: "Academic", date: "July 22, 2026", isPinned: true, isUrgent: true, status: "Published" },
-    { id: 2, title: "Annual Tech Fest & Skill Exhibition Registration Open", category: "Events", date: "July 18, 2026", isPinned: true, isUrgent: false, status: "Published" },
-    { id: 3, title: "Admissions Open for 45-Day Digital Mitra & Skill Courses", category: "General", date: "July 15, 2026", isPinned: false, isUrgent: false, status: "Draft" },
-    { id: 4, title: "Campus Wi-Fi & Server Maintenance Downtime", category: "Urgent", date: "July 10, 2026", isPinned: false, isUrgent: true, status: "Archived" }
-];
+import { db, auth, registerNewUser } from "../../../firebase";
+import { collection, addDoc, updateDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { onAuthStateChanged, signInWithEmailAndPassword, updateProfile, signOut } from "firebase/auth";
 
 export default function AdminDashboard() {
+    const [user, setUser] = useState(null);
+    const [authLoading, setAuthLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("dashboard");
+    const [inquiries, setInquiries] = useState([]);
+    const [notices, setNotices] = useState([]);
     const [eventsList, setEventsList] = useState([]);
+    const [usersList, setUsersList] = useState([]);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    // Firebase Auth State Listener
     useEffect(() => {
-        setEventsList(getStoredEvents());
-        const unsubscribe = subscribeEvents(setEventsList);
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setAuthLoading(false);
+        });
         return () => unsubscribe();
     }, []);
 
-    const handleLogout = () => {
-        router.push("/");
+    // 1. Single Firestore Subscription for Inquiries / Contacts
+    useEffect(() => {
+        if (!user) return;
+        const q = query(collection(db, "contacts"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const list = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
+                setInquiries(list);
+                setLoading(false);
+            },
+            (err) => {
+                console.error("Inquiries subscription error:", err);
+                setLoading(false);
+            }
+        );
+        return () => unsubscribe();
+    }, [user]);
+
+    // 2. Single Firestore Subscription for Notices
+    useEffect(() => {
+        if (!user) return;
+        const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const list = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
+                setNotices(list);
+            },
+            (err) => {
+                console.error("Notices subscription error:", err);
+            }
+        );
+        return () => unsubscribe();
+    }, [user]);
+
+    // 3. Single Subscription for Events
+    useEffect(() => {
+        if (!user) return;
+        setEventsList(getStoredEvents());
+        const unsubscribe = subscribeEvents(setEventsList);
+        return () => unsubscribe();
+    }, [user]);
+
+    // 4. Single Firestore Subscription for Admin Users
+    useEffect(() => {
+        if (!user) return;
+        const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const list = snapshot.docs.map((docSnap) => ({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                }));
+                setUsersList(list);
+            },
+            (err) => {
+                console.error("Users subscription error:", err);
+            }
+        );
+        return () => unsubscribe();
+    }, [user]);
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (err) {
+            console.error("Logout error:", err);
+        }
     };
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-base-200">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
+                <p className="mt-4 text-sm font-medium text-base-content/60">Verifying Admin Access...</p>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <AdminAuth />;
+    }
+
+    const userInitials = user.displayName
+        ? user.displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()
+        : user.email ? user.email.substring(0, 2).toUpperCase() : "AD";
 
     return (
         <div className="flex h-screen bg-base-200/50">
@@ -67,33 +160,41 @@ export default function AdminDashboard() {
                         AdminPanel
                     </h1>
                 </div>
-                
+
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-                    <button 
+                    <button
                         onClick={() => setActiveTab("dashboard")}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'dashboard' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
                     >
                         <LayoutDashboard size={20} /> Dashboard Overview
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab("inquiries")}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'inquiries' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
                     >
                         <div className="flex items-center gap-3"><Inbox size={20} /> Inquiries</div>
-                        <div className="badge badge-primary badge-sm">3</div>
+                        <div className="badge badge-primary badge-sm">{inquiries.length}</div>
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab("notices")}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'notices' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'notices' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
                     >
-                        <BellRing size={20} /> Notice Board
+                        <div className="flex items-center gap-3"><BellRing size={20} /> Notice Board</div>
+                        <div className="badge badge-neutral badge-sm">{notices.length}</div>
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab("events")}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'events' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
                     >
                         <div className="flex items-center gap-3"><CalendarDays size={20} /> Events & Gallery</div>
                         <div className="badge badge-secondary badge-sm">{eventsList.length}</div>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab("users")}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'users' ? 'bg-primary/10 text-primary' : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'}`}
+                    >
+                        <div className="flex items-center gap-3"><Users size={20} /> User Accounts</div>
+                        <div className="badge badge-accent badge-sm">{usersList.length}</div>
                     </button>
                 </nav>
 
@@ -111,24 +212,31 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-4">
                         <h2 className="text-xl font-bold capitalize text-base-content">{activeTab.replace('-', ' ')}</h2>
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
                         <div className="relative hidden md:block">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={18} />
                             <input type="text" placeholder="Search..." className="input input-sm input-bordered pl-10 w-64 rounded-full bg-base-200/50 focus:bg-base-100 transition-all" />
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">
-                            AD
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold">
+                                {userInitials}
+                            </div>
+                            <div className="hidden sm:block text-left">
+                                <div className="text-xs font-bold leading-tight">{user.displayName || "Admin User"}</div>
+                                <div className="text-[10px] text-base-content/50 leading-tight truncate max-w-[120px]">{user.email}</div>
+                            </div>
                         </div>
                     </div>
                 </header>
 
                 {/* Dynamic Content */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                    {activeTab === "dashboard" && <DashboardTab />}
-                    {activeTab === "inquiries" && <InquiriesTab />}
-                    {activeTab === "notices" && <NoticesTab />}
+                    {activeTab === "dashboard" && <DashboardTab inquiries={inquiries} notices={notices} events={eventsList} usersCount={usersList.length} />}
+                    {activeTab === "inquiries" && <InquiriesTab inquiries={inquiries} />}
+                    {activeTab === "notices" && <NoticesTab notices={notices} loading={loading} />}
                     {activeTab === "events" && <EventsTab events={eventsList} />}
+                    {activeTab === "users" && <UsersTab users={usersList} currentUser={user} />}
                 </div>
             </main>
         </div>
@@ -137,7 +245,14 @@ export default function AdminDashboard() {
 
 // --- Tab Components ---
 
-function DashboardTab() {
+function DashboardTab({ inquiries, notices, events }) {
+    const admissionCount = inquiries.filter(
+        (i) => (i.category || i.type)?.toLowerCase() === "admission"
+    ).length;
+    const activeNoticesCount = notices.filter(
+        (n) => n.status === "Published" || !n.status
+    ).length;
+
     return (
         <div className="space-y-8 max-w-6xl mx-auto">
             {/* Stat Cards */}
@@ -146,8 +261,8 @@ function DashboardTab() {
                     <div className="card-body p-6 flex flex-row items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-base-content/60 mb-1">Total Inquiries</p>
-                            <h3 className="text-3xl font-bold">1,248</h3>
-                            <p className="text-xs text-success flex items-center gap-1 mt-2"><TrendingUp size={14} /> +12% this month</p>
+                            <h3 className="text-3xl font-bold">{inquiries.length}</h3>
+                            <p className="text-xs text-success flex items-center gap-1 mt-2"><TrendingUp size={14} /> Live from Firebase</p>
                         </div>
                         <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
                             <Inbox size={24} />
@@ -157,9 +272,9 @@ function DashboardTab() {
                 <div className="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-all">
                     <div className="card-body p-6 flex flex-row items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-base-content/60 mb-1">Pending Admissions</p>
-                            <h3 className="text-3xl font-bold">42</h3>
-                            <p className="text-xs text-warning flex items-center gap-1 mt-2"><AlertCircle size={14} /> Action Required</p>
+                            <p className="text-sm font-medium text-base-content/60 mb-1">Admission Requests</p>
+                            <h3 className="text-3xl font-bold">{admissionCount}</h3>
+                            <p className="text-xs text-warning flex items-center gap-1 mt-2"><AlertCircle size={14} /> Course Applicants</p>
                         </div>
                         <div className="w-12 h-12 rounded-2xl bg-warning/10 text-warning flex items-center justify-center">
                             <Users size={24} />
@@ -170,8 +285,8 @@ function DashboardTab() {
                     <div className="card-body p-6 flex flex-row items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-base-content/60 mb-1">Active Notices</p>
-                            <h3 className="text-3xl font-bold">8</h3>
-                            <p className="text-xs text-success flex items-center gap-1 mt-2">Currently displayed</p>
+                            <h3 className="text-3xl font-bold">{activeNoticesCount}</h3>
+                            <p className="text-xs text-success flex items-center gap-1 mt-2">Published</p>
                         </div>
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                             <BellRing size={24} />
@@ -181,12 +296,12 @@ function DashboardTab() {
                 <div className="card bg-base-100 border border-base-200 shadow-sm hover:shadow-md transition-all">
                     <div className="card-body p-6 flex flex-row items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-base-content/60 mb-1">Total Views</p>
-                            <h3 className="text-3xl font-bold">45.2K</h3>
-                            <p className="text-xs text-success flex items-center gap-1 mt-2"><TrendingUp size={14} /> +5% this week</p>
+                            <p className="text-sm font-medium text-base-content/60 mb-1">Campus Events</p>
+                            <h3 className="text-3xl font-bold">{events.length}</h3>
+                            <p className="text-xs text-success flex items-center gap-1 mt-2">Active Posts</p>
                         </div>
                         <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
-                            <Eye size={24} />
+                            <CalendarDays size={24} />
                         </div>
                     </div>
                 </div>
@@ -197,7 +312,6 @@ function DashboardTab() {
                 <div className="card-body p-0">
                     <div className="flex items-center justify-between p-6 border-b border-base-200">
                         <h3 className="text-lg font-bold">Recent Submissions</h3>
-                        <button className="btn btn-sm btn-ghost text-primary">View All</button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="table">
@@ -210,31 +324,39 @@ function DashboardTab() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {MOCK_INQUIRIES.slice(0, 4).map((inq) => (
-                                    <tr key={inq.id} className="hover">
-                                        <td>
-                                            <div className="font-medium text-base-content">{inq.name}</div>
-                                            <div className="text-xs text-base-content/50">{inq.email}</div>
-                                        </td>
-                                        <td>
-                                            <span className={`badge badge-sm font-medium ${
-                                                inq.type === 'Admission' ? 'badge-primary badge-outline' :
-                                                inq.type === 'Inquiry' ? 'badge-success badge-outline' : 'badge-error badge-outline'
-                                            }`}>
-                                                {inq.type}
-                                            </span>
-                                        </td>
-                                        <td className="text-sm text-base-content/70">{inq.date}</td>
-                                        <td>
-                                            <span className={`badge badge-sm font-medium ${
-                                                inq.status === 'Resolved' ? 'bg-success/10 text-success border-success/20' :
-                                                inq.status === 'In Progress' ? 'bg-warning/10 text-warning border-warning/20' : 'bg-base-300 text-base-content/70 border-base-300'
-                                            }`}>
-                                                {inq.status}
-                                            </span>
+                                {inquiries.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="text-center py-6 text-base-content/50">
+                                            No inquiries received yet.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    inquiries.slice(0, 5).map((inq) => (
+                                        <tr key={inq.id} className="hover">
+                                            <td>
+                                                <div className="font-medium text-base-content">{inq.fullName || inq.name || "Anonymous"}</div>
+                                                <div className="text-xs text-base-content/50">{inq.email}</div>
+                                            </td>
+                                            <td>
+                                                <span className={`badge badge-sm font-medium capitalize ${(inq.category || inq.type) === 'admission' ? 'badge-primary badge-outline' :
+                                                        (inq.category || inq.type) === 'inquiry' ? 'badge-success badge-outline' : 'badge-error badge-outline'
+                                                    }`}>
+                                                    {inq.category || inq.type || 'General'}
+                                                </span>
+                                            </td>
+                                            <td className="text-sm text-base-content/70">
+                                                {inq.submittedAt ? new Date(inq.submittedAt).toLocaleDateString() : (inq.date || "Recent")}
+                                            </td>
+                                            <td>
+                                                <span className={`badge badge-sm font-medium ${inq.status === 'Resolved' ? 'bg-success/10 text-success border-success/20' :
+                                                        inq.status === 'In Progress' ? 'bg-warning/10 text-warning border-warning/20' : 'bg-base-300 text-base-content/70 border-base-300'
+                                                    }`}>
+                                                    {inq.status || 'Pending'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -244,18 +366,65 @@ function DashboardTab() {
     );
 }
 
-function InquiriesTab() {
+function InquiriesTab({ inquiries }) {
     const [filter, setFilter] = useState("All");
 
-    const filtered = filter === "All" ? MOCK_INQUIRIES : MOCK_INQUIRIES.filter(i => i.type === filter);
+    const filtered = inquiries.filter((i) => {
+        if (filter === "All") return true;
+        const cat = (i.category || i.type || "").toLowerCase();
+        return cat === filter.toLowerCase();
+    });
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await updateDoc(doc(db, "contacts", id), { status: newStatus });
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Failed to update status: " + err.message);
+        }
+    };
+
+    const handleDeleteInquiry = async (id) => {
+        if (!confirm("Are you sure you want to delete this inquiry entry?")) return;
+        try {
+            await deleteDoc(doc(db, "contacts", id));
+        } catch (err) {
+            console.error("Error deleting inquiry:", err);
+            alert("Failed to delete inquiry: " + err.message);
+        }
+    };
+
+    const exportCSV = () => {
+        if (inquiries.length === 0) return alert("No inquiries to export.");
+        const headers = ["ID", "Full Name", "Email", "Phone", "Category", "Qualification", "Message", "Status", "Date"];
+        const rows = inquiries.map((i) => [
+            `"${i.id}"`,
+            `"${i.fullName || i.name || ""}"`,
+            `"${i.email || ""}"`,
+            `"${i.phone || ""}"`,
+            `"${i.category || i.type || ""}"`,
+            `"${i.qualification || ""}"`,
+            `"${(i.message || "").replace(/"/g, '""')}"`,
+            `"${i.status || "Pending"}"`,
+            `"${i.submittedAt ? new Date(i.submittedAt).toLocaleDateString() : (i.date || "")}"`
+        ]);
+        const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `inquiries_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="join">
                     {["All", "Admission", "Inquiry", "Complaint"].map(f => (
-                        <button 
-                            key={f} 
+                        <button
+                            key={f}
                             onClick={() => setFilter(f)}
                             className={`btn btn-sm join-item ${filter === f ? 'btn-primary' : 'btn-active bg-base-100 hover:bg-base-200'}`}
                         >
@@ -263,9 +432,9 @@ function InquiriesTab() {
                         </button>
                     ))}
                 </div>
-                
+
                 <div className="flex gap-2">
-                    <button className="btn btn-sm btn-outline"><FileText size={16} /> Export CSV</button>
+                    <button onClick={exportCSV} className="btn btn-sm btn-outline"><FileText size={16} /> Export CSV</button>
                 </div>
             </div>
 
@@ -274,75 +443,98 @@ function InquiriesTab() {
                     <table className="table table-zebra">
                         <thead>
                             <tr className="bg-base-200/50 text-base-content/60">
-                                <th>ID</th>
                                 <th>Contact Info</th>
-                                <th>Type & Details</th>
+                                <th>Category & Details</th>
+                                <th>Message</th>
                                 <th>Status</th>
                                 <th className="text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map((inq) => (
-                                <tr key={inq.id}>
-                                    <td className="font-mono text-xs text-base-content/50">{inq.id}</td>
-                                    <td>
-                                        <div className="font-semibold text-base-content">{inq.name}</div>
-                                        <div className="text-xs text-base-content/60">{inq.email} • {inq.phone}</div>
-                                    </td>
-                                    <td>
-                                        <span className={`badge badge-sm mb-1 ${
-                                            inq.type === 'Admission' ? 'badge-primary' :
-                                            inq.type === 'Inquiry' ? 'badge-success' : 'badge-error'
-                                        }`}>
-                                            {inq.type}
-                                        </span>
-                                        {inq.qualification && <div className="text-xs text-base-content/70">Qual: {inq.qualification}</div>}
-                                    </td>
-                                    <td>
-                                        <select className="select select-bordered select-sm text-xs" defaultValue={inq.status}>
-                                            <option>Pending</option>
-                                            <option>In Progress</option>
-                                            <option>Resolved</option>
-                                        </select>
-                                    </td>
-                                    <td className="text-right">
-                                        <button className="btn btn-sm btn-ghost btn-circle" onClick={() => document.getElementById(`modal_${inq.id}`).showModal()}>
-                                            <Eye size={18} className="text-base-content/70" />
-                                        </button>
-                                        
-                                        {/* Modal for viewing message */}
-                                        <dialog id={`modal_${inq.id}`} className="modal text-left">
-                                            <div className="modal-box">
-                                                <h3 className="font-bold text-lg border-b border-base-200 pb-2 mb-4">Message Details</h3>
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">From</span>
-                                                        <p className="font-medium">{inq.name} ({inq.email})</p>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Subject Type</span>
-                                                        <p>{inq.type}</p>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Message</span>
-                                                        <div className="bg-base-200 p-4 rounded-xl text-sm mt-1">
-                                                            {inq.message}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="modal-action">
-                                                    <form method="dialog">
-                                                        <button className="btn btn-sm">Close</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                            <form method="dialog" className="modal-backdrop">
-                                                <button>close</button>
-                                            </form>
-                                        </dialog>
+                            {filtered.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-8 text-base-content/50">
+                                        No inquiries found.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                filtered.map((inq) => (
+                                    <tr key={inq.id}>
+                                        <td>
+                                            <div className="font-semibold text-base-content">{inq.fullName || inq.name || "Anonymous"}</div>
+                                            <div className="text-xs text-base-content/60">{inq.email} • {inq.phone}</div>
+                                        </td>
+                                        <td>
+                                            <span className={`badge badge-sm mb-1 capitalize ${(inq.category || inq.type) === 'admission' ? 'badge-primary' :
+                                                    (inq.category || inq.type) === 'inquiry' ? 'badge-success' : 'badge-error'
+                                                }`}>
+                                                {inq.category || inq.type || 'General'}
+                                            </span>
+                                            {inq.qualification && <div className="text-xs text-base-content/70">Qual: {inq.qualification}</div>}
+                                        </td>
+                                        <td>
+                                            <p className="text-xs text-base-content/80 max-w-xs line-clamp-2">{inq.message}</p>
+                                        </td>
+                                        <td>
+                                            <select
+                                                className="select select-bordered select-sm text-xs"
+                                                value={inq.status || "Pending"}
+                                                onChange={(e) => handleStatusChange(inq.id, e.target.value)}
+                                            >
+                                                <option value="Pending">Pending</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Resolved">Resolved</option>
+                                            </select>
+                                        </td>
+                                        <td className="text-right whitespace-nowrap">
+                                            <button className=" btn-sm btn-ghost btn-circle " onClick={() => document.getElementById(`modal_${inq.id}`).showModal()}>
+                                                <Eye size={18} className="text-base-content/70" />
+                                            </button>
+                                            <button className=" btn-sm btn-ghost btn-circle text-error" onClick={() => handleDeleteInquiry(inq.id)}>
+                                                <Trash2 size={16} />
+                                            </button>
+
+                                            {/* Modal for viewing message */}
+                                            <dialog id={`modal_${inq.id}`} className="modal text-left">
+                                                <div className="modal-box">
+                                                    <h3 className="font-bold text-lg border-b border-base-200 pb-2 mb-4">Inquiry Details</h3>
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">From</span>
+                                                            <p className="font-medium">{inq.fullName || inq.name} ({inq.email})</p>
+                                                            <p className="text-xs text-base-content/60">{inq.phone}</p>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Category</span>
+                                                            <p className="capitalize">{inq.category || inq.type}</p>
+                                                        </div>
+                                                        {inq.qualification && (
+                                                            <div>
+                                                                <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Qualification</span>
+                                                                <p>{inq.qualification}</p>
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <span className="text-xs font-semibold text-base-content/50 uppercase tracking-wider">Message</span>
+                                                            <div className="bg-base-200 p-4 rounded-xl text-sm mt-1 whitespace-pre-wrap">
+                                                                {inq.message}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="modal-action">
+                                                        <form method="dialog">
+                                                            <button className="btn btn-sm">Close</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                                <form method="dialog" className="modal-backdrop">
+                                                    <button>close</button>
+                                                </form>
+                                            </dialog>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -351,100 +543,284 @@ function InquiriesTab() {
     );
 }
 
-function NoticesTab() {
+function NoticesTab({ notices = [], loading = false }) {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [editingNotice, setEditingNotice] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Form states
+    const [title, setTitle] = useState("");
+    const [category, setCategory] = useState("Academic");
+    const [status, setStatus] = useState("Published");
+    const [isPinned, setIsPinned] = useState(false);
+    const [isUrgent, setIsUrgent] = useState(false);
+    const [content, setContent] = useState("");
+
+    const openCreateModal = () => {
+        setEditingNotice(null);
+        setTitle("");
+        setCategory("Academic");
+        setStatus("Published");
+        setIsPinned(false);
+        setIsUrgent(false);
+        setContent("");
+        document.getElementById('notice_modal').showModal();
+    };
+
+    const openEditModal = (notice) => {
+        setEditingNotice(notice);
+        setTitle(notice.title || "");
+        setCategory(notice.category || "Academic");
+        setStatus(notice.status || "Published");
+        setIsPinned(!!notice.isPinned);
+        setIsUrgent(!!notice.isUrgent);
+        setContent(notice.content || "");
+        document.getElementById('notice_modal').showModal();
+    };
+
+    const handleSaveNotice = async (e) => {
+        e.preventDefault();
+        if (!title.trim() || !content.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const formattedDate = new Date().toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            });
+
+            if (editingNotice) {
+                await updateDoc(doc(db, "notices", editingNotice.id), {
+                    title: title.trim(),
+                    category,
+                    status,
+                    isPinned,
+                    isUrgent,
+                    content: content.trim(),
+                    updatedAt: serverTimestamp()
+                });
+            } else {
+                await addDoc(collection(db, "notices"), {
+                    title: title.trim(),
+                    category,
+                    status,
+                    isPinned,
+                    isUrgent,
+                    content: content.trim(),
+                    date: formattedDate,
+                    createdAt: serverTimestamp()
+                });
+            }
+
+            document.getElementById('notice_modal').close();
+        } catch (error) {
+            console.error("Error saving notice to Firebase:", error);
+            alert("Failed to save notice: " + (error.message || "Unknown error"));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteNotice = async (id) => {
+        if (!confirm("Are you sure you want to delete this notice?")) return;
+        try {
+            await deleteDoc(doc(db, "notices", id));
+        } catch (error) {
+            console.error("Error deleting notice from Firebase:", error);
+            alert("Failed to delete notice: " + (error.message || "Unknown error"));
+        }
+    };
+
+    const filteredNotices = notices.filter((n) => {
+        const q = searchQuery.toLowerCase();
+        return (
+            n.title?.toLowerCase().includes(q) ||
+            n.category?.toLowerCase().includes(q) ||
+            n.content?.toLowerCase().includes(q)
+        );
+    });
+
     return (
         <div className="space-y-6 max-w-6xl mx-auto">
             <div className="flex justify-between items-center">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={16} />
-                    <input type="text" placeholder="Search notices..." className="input input-sm input-bordered pl-9 w-64" />
+                    <input
+                        type="text"
+                        placeholder="Search notices..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input input-sm input-bordered pl-9 w-64"
+                    />
                 </div>
-                
-                <button className="btn btn-primary btn-sm gap-2" onClick={() => document.getElementById('add_notice_modal').showModal()}>
+
+                <button className="btn btn-primary btn-sm gap-2" onClick={openCreateModal}>
                     <Plus size={16} /> Create Notice
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {MOCK_NOTICES.map((notice) => (
-                    <div key={notice.id} className="card bg-base-100 border border-base-200 hover:border-primary/30 transition-colors shadow-sm">
-                        <div className="card-body p-5">
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex gap-2">
-                                    <span className={`badge badge-sm font-semibold ${
-                                        notice.status === 'Published' ? 'badge-success badge-outline' :
-                                        notice.status === 'Draft' ? 'badge-warning badge-outline' : 'badge-neutral badge-outline'
-                                    }`}>
-                                        {notice.status}
-                                    </span>
-                                    {notice.isPinned && <span className="badge badge-sm badge-primary">Pinned</span>}
-                                    {notice.isUrgent && <span className="badge badge-sm badge-error">Urgent</span>}
-                                </div>
-                                <div className="dropdown dropdown-end">
-                                    <div tabIndex={0} role="button" className="btn btn-xs btn-ghost btn-circle">
-                                        <MoreVertical size={16} />
+            {loading ? (
+                <div className="flex justify-center items-center py-16">
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+            ) : filteredNotices.length === 0 ? (
+                <div className="text-center py-16 bg-base-100 rounded-2xl border border-base-200 shadow-sm">
+                    <BellRing className="mx-auto h-12 w-12 text-base-content/30 mb-3" />
+                    <h3 className="text-lg font-semibold">No notices found</h3>
+                    <p className="text-sm text-base-content/60 mt-1 mb-4">
+                        {searchQuery ? "Try matching a different search term." : "Click 'Create Notice' to add your first notice."}
+                    </p>
+                    {!searchQuery && (
+                        <button className="btn btn-primary btn-sm gap-2" onClick={openCreateModal}>
+                            <Plus size={16} /> Create Notice
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredNotices.map((notice) => (
+                        <div key={notice.id} className="card bg-base-100 border border-base-200 hover:border-primary/30 transition-colors shadow-sm">
+                            <div className="card-body p-5">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <span className={`badge badge-sm font-semibold ${notice.status === 'Published' ? 'badge-success badge-outline' :
+                                                notice.status === 'Draft' ? 'badge-warning badge-outline' : 'badge-neutral badge-outline'
+                                            }`}>
+                                            {notice.status || 'Published'}
+                                        </span>
+                                        {notice.isPinned && <span className="badge badge-sm badge-primary">Pinned</span>}
+                                        {notice.isUrgent && <span className="badge badge-sm badge-error">Urgent</span>}
                                     </div>
-                                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-32 border border-base-200">
-                                        <li><a><Edit size={14} /> Edit</a></li>
-                                        <li><a className="text-error"><Trash2 size={14} /> Delete</a></li>
-                                    </ul>
+                                    <div className="dropdown dropdown-end">
+                                        <div tabIndex={0} role="button" className=" btn-xs btn-ghost btn-circle">
+                                            <MoreVertical size={16} />
+                                        </div>
+                                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-32 border border-base-200">
+                                            <li><button type="button" onClick={() => openEditModal(notice)}><Edit size={14} /> Edit</button></li>
+                                            <li><button type="button" onClick={() => handleDeleteNotice(notice.id)} className="text-error"><Trash2 size={14} /> Delete</button></li>
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
-                            <h3 className="card-title text-base leading-snug line-clamp-2">{notice.title}</h3>
-                            <div className="text-xs text-base-content/60 mt-auto pt-4 flex justify-between border-t border-base-100">
-                                <span>{notice.category}</span>
-                                <span>{notice.date}</span>
+                                <h3 className="card-title text-base leading-snug">{notice.title}</h3>
+                                {notice.content && (
+                                    <p className="text-xs text-base-content/70 mt-2 line-clamp-3">{notice.content}</p>
+                                )}
+                                <div className="text-xs text-base-content/60 mt-auto pt-4 flex justify-between border-t border-base-100">
+                                    <span>{notice.category}</span>
+                                    <span>{notice.date}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
-            {/* Create Notice Modal */}
-            <dialog id="add_notice_modal" className="modal">
+            {/* Create / Edit Notice Modal */}
+            <dialog id="notice_modal" className="modal">
                 <div className="modal-box w-11/12 max-w-3xl">
-                    <h3 className="font-bold text-xl border-b border-base-200 pb-4 mb-6">Create New Notice</h3>
-                    
-                    <form className="space-y-4">
+                    <h3 className="font-bold text-xl border-b border-base-200 pb-4 mb-6">
+                        {editingNotice ? "Edit Notice" : "Create New Notice"}
+                    </h3>
+
+                    <form onSubmit={handleSaveNotice} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <fieldset className="fieldset col-span-2">
                                 <legend className="fieldset-legend font-semibold">Notice Title</legend>
-                                <input type="text" className="input input-bordered w-full" placeholder="Enter title..." />
+                                <input
+                                    type="text"
+                                    required
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="input input-bordered w-full"
+                                    placeholder="Enter title..."
+                                />
                             </fieldset>
-                            
+
                             <fieldset className="fieldset">
                                 <legend className="fieldset-legend font-semibold">Category</legend>
-                                <select className="select select-bordered w-full">
-                                    <option>Academic</option>
-                                    <option>Events</option>
-                                    <option>Urgent</option>
-                                    <option>General</option>
+                                <select
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                    className="select select-bordered w-full"
+                                >
+                                    <option value="Academic">Academic</option>
+                                    <option value="Events">Events</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="General">General</option>
                                 </select>
                             </fieldset>
-                            
+
                             <fieldset className="fieldset">
+                                <legend className="fieldset-legend font-semibold">Status</legend>
+                                <select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    className="select select-bordered w-full"
+                                >
+                                    <option value="Published">Published</option>
+                                    <option value="Draft">Draft</option>
+                                    <option value="Archived">Archived</option>
+                                </select>
+                            </fieldset>
+
+                            <fieldset className="fieldset col-span-2">
                                 <legend className="fieldset-legend font-semibold">Visibility Flags</legend>
-                                <div className="flex gap-4 mt-2">
+                                <div className="flex gap-6 mt-2">
                                     <label className="label cursor-pointer gap-2">
-                                        <input type="checkbox" className="checkbox checkbox-primary checkbox-sm" />
-                                        <span className="label-text">Pin to Top</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={isPinned}
+                                            onChange={(e) => setIsPinned(e.target.checked)}
+                                            className="checkbox checkbox-primary checkbox-sm"
+                                        />
+                                        <span className="label-text font-medium">Pin to Top</span>
                                     </label>
                                     <label className="label cursor-pointer gap-2">
-                                        <input type="checkbox" className="checkbox checkbox-error checkbox-sm" />
-                                        <span className="label-text">Mark Urgent</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={isUrgent}
+                                            onChange={(e) => setIsUrgent(e.target.checked)}
+                                            className="checkbox checkbox-error checkbox-sm"
+                                        />
+                                        <span className="label-text font-medium">Mark Urgent</span>
                                     </label>
                                 </div>
                             </fieldset>
                         </div>
 
                         <fieldset className="fieldset col-span-2">
-                            <legend className="fieldset-legend font-semibold">Content</legend>
-                            <textarea className="textarea textarea-bordered w-full h-32" placeholder="Write notice content here..."></textarea>
+                            <legend className="fieldset-legend font-semibold">Notice Content</legend>
+                            <textarea
+                                required
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                className="textarea textarea-bordered w-full h-32"
+                                placeholder="Write notice content here..."
+                            ></textarea>
                         </fieldset>
 
                         <div className="flex justify-end gap-3 pt-4 border-t border-base-200 mt-6">
-                            <button type="button" className="btn" onClick={() => document.getElementById('add_notice_modal').close()}>Cancel</button>
-                            <button type="button" className="btn btn-primary" onClick={() => document.getElementById('add_notice_modal').close()}>Publish Notice</button>
+                            <button
+                                type="button"
+                                className="btn"
+                                onClick={() => document.getElementById('notice_modal').close()}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="btn btn-primary"
+                            >
+                                {isSubmitting ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : editingNotice ? (
+                                    "Update Notice"
+                                ) : (
+                                    "Publish Notice"
+                                )}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -477,7 +853,7 @@ function EventsTab({ events }) {
         setDate(new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }));
         setStatus("Published");
         setDescription("");
-        setImages(["/images/students.jpeg"]);
+        setImages([]);
         setImageUrlInput("");
         document.getElementById("event_modal").showModal();
     };
@@ -494,15 +870,52 @@ function EventsTab({ events }) {
         document.getElementById("event_modal").showModal();
     };
 
-    const handleFileUpload = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach((file) => {
+    const compressImage = (file) => {
+        return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onload = (event) => {
-                setImages((prev) => [...prev, event.target.result]);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const maxWidth = 1000;
+                    const maxHeight = 1000;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL("image/jpeg", 0.75));
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         });
+    };
+
+    const handleFileUpload = async (e) => {
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+            try {
+                const compressedDataUrl = await compressImage(file);
+                setImages((prev) => [...prev, compressedDataUrl]);
+            } catch (err) {
+                console.error("Error compressing image:", err);
+            }
+        }
     };
 
     const handleAddImageUrl = () => {
@@ -515,36 +928,53 @@ function EventsTab({ events }) {
         setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
     };
 
-    const handleSubmit = (e) => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title.trim()) return;
 
+        setIsSubmitting(true);
         const payload = {
-            title,
+            title: title.trim(),
             category,
             date,
             status,
-            description,
-            images: images.length > 0 ? images : ["/images/students.jpeg"]
+            description: description.trim(),
+            images: images
         };
 
-        if (editingEvent) {
-            updateEvent(editingEvent.id, payload);
-        } else {
-            addEvent(payload);
+        try {
+            if (editingEvent) {
+                await updateEvent(editingEvent.id, payload);
+            } else {
+                await addEvent(payload);
+            }
+            document.getElementById("event_modal").close();
+        } catch (err) {
+            console.error("Error saving event:", err);
+            alert("Failed to save event: " + (err.message || "Unknown error"));
+        } finally {
+            setIsSubmitting(false);
         }
-
-        document.getElementById("event_modal").close();
     };
 
-    const handleToggleStatus = (evt) => {
+    const handleToggleStatus = async (evt) => {
         const nextStatus = evt.status === "Published" ? "Draft" : "Published";
-        updateEvent(evt.id, { status: nextStatus });
+        try {
+            await updateEvent(evt.id, { status: nextStatus });
+        } catch (err) {
+            console.error("Error toggling status:", err);
+        }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (confirm("Are you sure you want to delete this event?")) {
-            deleteEvent(id);
+            try {
+                await deleteEvent(id);
+            } catch (err) {
+                console.error("Error deleting event:", err);
+            }
         }
     };
 
@@ -681,23 +1111,22 @@ function EventsTab({ events }) {
                                         <td>
                                             <button
                                                 onClick={() => handleToggleStatus(evt)}
-                                                className={`badge badge-sm font-semibold cursor-pointer transition-transform hover:scale-105 ${
-                                                    evt.status === "Published" ? "badge-success" : "badge-warning"
-                                                }`}
+                                                className={`badge badge-sm font-semibold cursor-pointer transition-transform hover:scale-105 ${evt.status === "Published" ? "badge-success" : "badge-warning"
+                                                    }`}
                                             >
                                                 {evt.status}
                                             </button>
                                         </td>
                                         <td className="text-right whitespace-nowrap">
                                             <button
-                                                className="btn btn-sm btn-ghost btn-circle"
+                                                className="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white rounded-full p-2.5 shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95 z-20 relative"
                                                 title="Edit Event"
                                                 onClick={() => openEditModal(evt)}
                                             >
-                                                <Edit size={16} className="text-base-content/70" />
+                                                <Edit size={16} className="text-white" />
                                             </button>
                                             <button
-                                                className="btn btn-sm btn-ghost btn-circle text-error"
+                                                className="bg-gradient-to-r from-red-400 to-rose-500 hover:from-red-500 hover:to-rose-600 text-white rounded-full p-2.5 shadow-lg transform transition-all duration-300 hover:scale-110 active:scale-95 z-20 relative"
                                                 title="Delete Event"
                                                 onClick={() => handleDelete(evt.id)}
                                             >
@@ -801,7 +1230,7 @@ function EventsTab({ events }) {
                         {/* Multi Image Manager */}
                         <fieldset className="fieldset border border-base-200 p-4 rounded-xl space-y-3">
                             <legend className="fieldset-legend font-semibold text-primary">Event Gallery Images</legend>
-                            
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-semibold mb-1 block">Upload Local Photos</label>
@@ -862,8 +1291,14 @@ function EventsTab({ events }) {
                             >
                                 Cancel
                             </button>
-                            <button type="submit" className="btn btn-primary">
-                                {editingEvent ? "Save Changes" : "Post Event"}
+                            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+                                {isSubmitting ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : editingEvent ? (
+                                    "Save Changes"
+                                ) : (
+                                    "Post Event"
+                                )}
                             </button>
                         </div>
                     </form>
@@ -872,6 +1307,415 @@ function EventsTab({ events }) {
                     <button>close</button>
                 </form>
             </dialog>
+        </div>
+    );
+}
+
+function UsersTab({ users = [], currentUser }) {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const openRegisterModal = () => {
+        setName("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setError("");
+        setSuccessMsg("");
+        document.getElementById("user_modal").showModal();
+    };
+
+    const handleRegisterUser = async (e) => {
+        e.preventDefault();
+        setError("");
+        setSuccessMsg("");
+
+        if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+            setError("Please fill in all required fields.");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const createdUser = await registerNewUser(name.trim(), email.trim(), password);
+            if (createdUser) {
+                await setDoc(doc(db, "users", createdUser.uid), {
+                    uid: createdUser.uid,
+                    displayName: name.trim(),
+                    email: email.trim(),
+                    role: "Admin",
+                    createdAt: serverTimestamp()
+                });
+            }
+            setSuccessMsg("Admin user account registered successfully!");
+            setTimeout(() => {
+                document.getElementById("user_modal").close();
+            }, 1200);
+        } catch (err) {
+            console.error("Error registering user:", err);
+            if (err.code === "auth/email-already-in-use") {
+                setError("An account with this email already exists.");
+            } else if (err.code === "auth/invalid-email") {
+                setError("Please enter a valid email address.");
+            } else if (err.code === "auth/weak-password") {
+                setError("Password is too weak. Minimum 6 characters required.");
+            } else {
+                setError(err.message || "Failed to register admin user.");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const filteredUsers = users.filter((u) => {
+        const q = searchQuery.toLowerCase();
+        return (
+            (u.displayName || "").toLowerCase().includes(q) ||
+            (u.email || "").toLowerCase().includes(q)
+        );
+    });
+
+    return (
+        <div className="space-y-6 max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={16} />
+                    <input
+                        type="text"
+                        placeholder="Search admin accounts..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input input-sm input-bordered pl-9 w-64"
+                    />
+                </div>
+
+                <button className="btn btn-primary btn-sm gap-2" onClick={openRegisterModal}>
+                    <Plus size={16} /> Register New Admin
+                </button>
+            </div>
+
+            {/* Users Table */}
+            <div className="card bg-base-100 border border-base-200 shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="table table-zebra">
+                        <thead>
+                            <tr className="bg-base-200/50 text-base-content/60">
+                                <th>Admin User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="text-center py-8 text-base-content/50">
+                                        No registered admin users found. Click "Register New Admin" to add one.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredUsers.map((u) => (
+                                    <tr key={u.id || u.uid}>
+                                        <td>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">
+                                                    {(u.displayName || u.email || "AD").substring(0, 2).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold text-base-content">
+                                                        {u.displayName || "Admin User"}
+                                                        {currentUser?.email === u.email && (
+                                                            <span className="ml-2 badge badge-xs badge-primary">You</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="text-sm text-base-content/80">{u.email}</td>
+                                        <td>
+                                            <span className="badge badge-sm badge-outline badge-accent font-medium">
+                                                {u.role || "Admin"}
+                                            </span>
+                                        </td>
+                                        <td className="text-xs text-base-content/60">
+                                            {u.createdAt?.toDate ? u.createdAt.toDate().toLocaleDateString() : "Recent"}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Modal for Registering New Admin User */}
+            <dialog id="user_modal" className="modal">
+                <div className="modal-box w-11/12 max-w-lg">
+                    <h3 className="font-bold text-xl border-b border-base-200 pb-4 mb-6 flex items-center gap-2">
+                        <ShieldCheck className="text-primary" /> Register New Admin Account
+                    </h3>
+
+                    {error && (
+                        <div className="alert alert-error text-xs shadow-sm mb-4 flex items-start gap-2 py-3">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    {successMsg && (
+                        <div className="alert alert-success text-xs shadow-sm mb-4 flex items-start gap-2 py-3">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>{successMsg}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleRegisterUser} className="space-y-4">
+                        <fieldset className="fieldset">
+                            <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Full Name</legend>
+                            <div className="relative">
+                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="e.g. John Doe"
+                                    className="input input-bordered w-full pl-10 text-sm focus:input-primary"
+                                />
+                            </div>
+                        </fieldset>
+
+                        <fieldset className="fieldset">
+                            <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Email Address</legend>
+                            <div className="relative">
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="newadmin@donbosco.edu"
+                                    className="input input-bordered w-full pl-10 text-sm focus:input-primary"
+                                />
+                            </div>
+                        </fieldset>
+
+                        <fieldset className="fieldset">
+                            <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Password</legend>
+                            <div className="relative">
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Minimum 6 characters"
+                                    className="input input-bordered w-full pl-10 pr-10 text-sm focus:input-primary"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </fieldset>
+
+                        <fieldset className="fieldset">
+                            <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Confirm Password</legend>
+                            <div className="relative">
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Re-enter password"
+                                    className="input input-bordered w-full pl-10 text-sm focus:input-primary"
+                                />
+                            </div>
+                        </fieldset>
+
+                        <div className="flex justify-end gap-3 pt-4 border-t border-base-200 mt-6">
+                            <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => document.getElementById("user_modal").close()}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="btn btn-primary btn-sm gap-2"
+                            >
+                                {isSubmitting ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : (
+                                    <>
+                                        Register Admin <ShieldCheck size={16} />
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <form method="dialog" className="modal-backdrop">
+                    <button>close</button>
+                </form>
+            </dialog>
+        </div>
+    );
+}
+
+function AdminAuth() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError("");
+        if (!email.trim() || !password) {
+            setError("Please fill in all required fields.");
+            return;
+        }
+        setLoading(true);
+        try {
+            await signInWithEmailAndPassword(auth, email.trim(), password);
+        } catch (err) {
+            console.error("Firebase Login Error:", err);
+            if (
+                err.code === "auth/invalid-credential" ||
+                err.code === "auth/wrong-password" ||
+                err.code === "auth/user-not-found"
+            ) {
+                setError("Invalid email or password. Please check your credentials.");
+            } else if (err.code === "auth/too-many-requests") {
+                setError("Too many failed attempts. Please try again later.");
+            } else {
+                setError(err.message || "Failed to sign in.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-base-300 via-base-200 to-base-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+            <div className="w-full max-w-md">
+                {/* Brand / Title Header */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-content font-bold text-2xl shadow-xl shadow-primary/20 mb-4 transform hover:scale-105 transition-transform">
+                        DB
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-base-content tracking-tight">Don Bosco Admin</h1>
+                    <p className="text-sm text-base-content/60 mt-1">Authorized Portal Access</p>
+                </div>
+
+                {/* Auth Card */}
+                <div className="card bg-base-100/90 backdrop-blur-xl border border-base-200 shadow-2xl overflow-hidden rounded-3xl">
+                    <div className="card-body p-6 sm:p-8">
+                        <div className="text-center mb-4">
+                            <h2 className="text-lg font-bold text-base-content">Admin Sign In</h2>
+                            <p className="text-xs text-base-content/60">Enter your credentials to access admin dashboard</p>
+                        </div>
+
+                        {error && (
+                            <div className="alert alert-error text-xs shadow-sm mb-4 flex items-start gap-2 py-3">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        {/* LOGIN FORM */}
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <fieldset className="fieldset">
+                                <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Admin Email</legend>
+                                <div className="relative">
+                                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="admin@donbosco.edu"
+                                        className="input input-bordered w-full pl-10 text-sm focus:input-primary"
+                                    />
+                                </div>
+                            </fieldset>
+
+                            <fieldset className="fieldset">
+                                <legend className="fieldset-legend font-semibold text-xs text-base-content/70">Password</legend>
+                                <div className="relative">
+                                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40 w-4 h-4" />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        required
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="input input-bordered w-full pl-10 pr-10 text-sm focus:input-primary"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </fieldset>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn btn-primary w-full shadow-lg shadow-primary/20 text-sm font-bold gap-2 mt-2"
+                            >
+                                {loading ? (
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                ) : (
+                                    <>
+                                        Sign In to Dashboard <ArrowRight className="w-4 h-4" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+                    </div>
+
+                    <div className="px-6 py-4 bg-base-200/50 border-t border-base-200 flex items-center justify-between text-xs text-base-content/60">
+                        <span>Protected by Firebase Auth</span>
+                        <button
+                            type="button"
+                            onClick={() => router.push("/")}
+                            className="text-primary font-medium hover:underline flex items-center gap-1"
+                        >
+                            Return to Site &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

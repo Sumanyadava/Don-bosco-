@@ -152,7 +152,6 @@ export default function LandingPage() {
             <SectionIntro
               eyebrow="Testimonials"
               title="Replace these quotes with student, parent, and instructor voices."
-              text="This placeholder block gives the homepage a warmer, more credible feel while you collect real content."
             />
             <div className="grid gap-6 md:grid-cols-3">
               {testimonials.map((item) => (

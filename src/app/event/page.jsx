@@ -58,9 +58,9 @@ export default function EventPage() {
         eyebrow="Event Gallery & Campus Moments"
         title="Campus events, counselling, and live training moments."
         text="Explore stories, workshops, certificate ceremonies, and practical trade activities from Don Bosco SERI Liluah."
-        primaryHref="/inquiry"
+        primaryHref="/contact"
         primaryLabel="Ask About Events"
-        secondaryHref="/admission"
+        secondaryHref="/courses"
         secondaryLabel="Explore Courses"
         visualLabel="Don Bosco Campus Event Gallery"
       />
